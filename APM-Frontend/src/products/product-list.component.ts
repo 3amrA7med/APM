@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { IProduct } from './product';
+import { Product } from './product';
 import { ProductService } from './product-service';
 
 @Component({
@@ -14,8 +14,9 @@ export class ProductListComponent implements OnInit {
     imageWidth: number = 50;
     imageMargin: number = 2;
     showImage: boolean = false;
-    filteredProducts: IProduct[];
-    products: IProduct[];
+    errorMessage: string ;
+    filteredProducts: Product[];
+    products: Product[];
     _listFilter: string ;
     get listFilter(): string{
         return this._listFilter;
@@ -28,18 +29,26 @@ export class ProductListComponent implements OnInit {
         this.listFilter = '';
     }
     ngOnInit(): void {
-        this.products = this.productService.getProducts();
-        // because constructor is executed before OnInit lifecycle hook
-        this.filteredProducts = this.products; 
+        this.productService.getProducts().subscribe({
+            next: products =>{ 
+                this.products = products;
+                console.log("Inside on init");
+                console.log(this.products);
+                // because constructor is executed before OnInit lifecycle hook
+                this.filteredProducts = this.products; 
+            },
+            error: err => this.errorMessage = err
+        });
+        
     }
 
     toggleImage() : void {
         this.showImage = !this.showImage;
     }
 
-    performFilter(filterBy : string): IProduct[]{
+    performFilter(filterBy : string): Product[]{
         filterBy = filterBy.toLocaleLowerCase();
-        return this.products.filter((product:IProduct) =>
+        return this.products.filter((product:Product) =>
         product.productName.toLocaleLowerCase().indexOf(filterBy) !== -1
         );
     }

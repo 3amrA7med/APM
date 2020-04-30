@@ -1,34 +1,34 @@
 import { Injectable } from "@angular/core";
-import { IProduct } from './product';
-
+import { IProduct } from './products';
+import { Product } from './product';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap, map } from 'rxjs/operators';
 
 @Injectable({
     providedIn:'root'
 })
 export class ProductService {
+    private productUrl = 'http://localhost:8080/api/v1/product';
+    
+    constructor(private http: HttpClient){    }
+    getProducts() : Observable<Product[]>{
+      return this.http.get<IProduct>(this.productUrl).pipe(
+        map(data =>  data._embedded.products),
+        catchError(this.handleError)
+      );
+    }
 
-    getProducts(): IProduct[]{
-        return [
-            {
-              "productId": 1,
-              "productName": "Leaf Rake",
-              "productCode": "GDN-0011",
-              "releaseDate": "March 19, 2019",
-              "description": "Leaf rake with 48-inch wooden handle.",
-              "price": 19.95,
-              "starRating": 3.2,
-              "imageUrl": "assets/images/leaf_rake.png"
-            },
-            {
-              "productId": 2,
-              "productName": "Garden Cart",
-              "productCode": "GDN-0023",
-              "releaseDate": "March 18, 2019",
-              "description": "15 gallon capacity rolling garden cart",
-              "price": 32.99,
-              "starRating": 4.2,
-              "imageUrl": "assets/images/garden_cart.png"
-            }
-        ];
+    private handleError(err: HttpErrorResponse){
+      let errorMessage = "";
+      if(err.error instanceof ErrorEvent)
+      {
+        errorMessage = `An error occuared: ${err.error.message}`;
+      }
+      else {
+        errorMessage = `Server returned code: ${err.status}, error message is: ${err.message}`;
+      }
+      console.error(errorMessage);
+      return throwError(errorMessage);
     }
 }
